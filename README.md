@@ -9,6 +9,9 @@ backend (`/api/items/:id/image.svg`), so no external image host is needed.
 
 ## Run it
 
+Prerequisite: Download docker. For personal use, docker desktop is great.
+Alternatively, install the docker engine separately.
+
 ```bash
 docker compose up --build
 ```
