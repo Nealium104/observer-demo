@@ -1,0 +1,27 @@
+services:
+  backend:
+    build: ./backend
+    container_name: observer-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    volumes:
+      - ./backend/src:/app/src
+    command: npm run dev
+
+  frontend:
+    build: ./frontend
+    container_name: observer-frontend
+    ports:
+      # vite provided
+      - "5173:5173"
+    environment:
+      # use docker's dns
+      - BACKEND_URL=http://backend:8000
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+    command: npm run dev
+    depends_on:
+      - backend
