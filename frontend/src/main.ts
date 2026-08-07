@@ -6,7 +6,21 @@ interface Item {
   imageUrl: string;
 }
 
+interface FeedResponse {
+  page: number;
+  pageSize: number;
+  total: number;
+  hasMore: boolean;
+  items: Item[];
+}
+
 const feed = document.getElementById("feed") as HTMLElement;
+
+async function fetchItems(page: number, pageSize = 12): Promise<FeedResponse> {
+  const res = await fetch(`/api/items?page=${page}&pageSize=${pageSize}`);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
 
 function renderCard(item: Item): HTMLElement {
   const card = document.createElement("article");
@@ -21,3 +35,4 @@ function renderCard(item: Item): HTMLElement {
     </div>`;
   return card;
 }
+
