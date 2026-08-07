@@ -48,6 +48,31 @@ function makeImageSvg(id: number): string {
 </svg>`;
 }
 
+// Paginated feed
+app.get("/api/items", (req, res) => {
+  const page = Math.max(1, Number(req.query.page ?? 1));
+  const pageSize = Math.min(50, Math.max(1, Number(req.query.pageSize ?? 12)));
+
+  const start = (page - 1) * pageSize;
+  const end = Math.min(start + pageSize, TOTAL_ITEMS);
+
+  const items: Item[] = [];
+  for (let id = start + 1; id <= end; id++) {
+    items.push(makeItem(id));
+  }
+
+  // Simulate a slow-ish service so the loading state is observable.
+  setTimeout(() => {
+    res.json({
+      page,
+      pageSize,
+      total: TOTAL_ITEMS,
+      hasMore: end < TOTAL_ITEMS,
+      items,
+    });
+  }, 400);
+});
+
 app.get("/api/items/:id/image.svg", (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id < 1 || id > TOTAL_ITEMS) {
