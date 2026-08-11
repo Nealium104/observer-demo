@@ -36,3 +36,41 @@ function renderCard(item: Item): HTMLElement {
   return card;
 }
 
+let page = 1;
+let loading = false;
+let hasMore = true;
+
+async function loadNextPage() {
+    if (loading || !hasMore) return;
+    loading = true;
+
+    const res = await fetchItems(page);
+    res.items.forEach(item => feed.append(renderCard(item)));
+    loadVisibleImages();
+
+    page += 1;
+    hasMore = res.hasMore;
+    loading = false;
+}
+
+function onScroll() {
+    const scrolledToBottom =
+        window.scrollY + window.innerHeight > document.documentElement.scrollHeight - 400;
+    if (scrolledToBottom) loadNextPage();
+}
+
+function loadVisibleImages() {
+    document.querySelectorAll<HTMLImageElement>("img[data-src]").forEach(img => {
+        const rect = img.getBoundingClientRect();
+        const inView = rect.top < window.innerHeight && rect.bottom > 0;
+        if (inView) {
+            img.src = img.dataset.src!;
+            img.removeAttribute("data-src");
+        }
+    });
+}
+
+window.addEventListener("scroll", onScroll);
+window.addEventListener("scroll", loadVisibleImages);
+
+loadNextPage(); // kick off page 1
