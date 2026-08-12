@@ -1,28 +1,12 @@
-interface Item {
-  id: number;
-  title: string;
-  body: string;
-  color: string;
-  imageUrl: string;
-}
+const feed = document.getElementById("feed");
 
-interface FeedResponse {
-  page: number;
-  pageSize: number;
-  total: number;
-  hasMore: boolean;
-  items: Item[];
-}
-
-const feed = document.getElementById("feed") as HTMLElement;
-
-async function fetchItems(page: number, pageSize = 12): Promise<FeedResponse> {
+async function fetchItems(page, pageSize = 12) {
   const res = await fetch(`/api/items?page=${page}&pageSize=${pageSize}`);
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json();
 }
 
-function renderCard(item: Item): HTMLElement {
+function renderCard(item) {
   const card = document.createElement("article");
   card.className = "card";
   card.innerHTML = `
@@ -60,17 +44,25 @@ function onScroll() {
 }
 
 function loadVisibleImages() {
-    document.querySelectorAll<HTMLImageElement>("img[data-src]").forEach(img => {
+    document.querySelectorAll("img[data-src]").forEach(img => {
         const rect = img.getBoundingClientRect();
         const inView = rect.top < window.innerHeight && rect.bottom > 0;
         if (inView) {
-            img.src = img.dataset.src!;
+            img.src = img.dataset.src;
             img.removeAttribute("data-src");
         }
     });
 }
 
-window.addEventListener("scroll", onScroll);
-window.addEventListener("scroll", loadVisibleImages);
+function debounce(fn, wait = 150) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), wait);
+    };
+}
+
+window.addEventListener("scroll", debounce(onScroll));
+window.addEventListener("scroll", debounce(loadVisibleImages));
 
 loadNextPage(); // kick off page 1
