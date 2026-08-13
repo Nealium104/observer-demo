@@ -6,6 +6,22 @@ async function fetchItems(page, pageSize = 12) {
   return res.json();
 }
 
+function renderCard(item) {
+  const card = document.createElement("article");
+  card.className = "card reveal";
+  card.innerHTML = `
+    <div class="card-image" style="background:${item.color}">
+      <img alt="${item.title}" data-src="${item.imageUrl}" />
+    </div>
+    <div class="card-body">
+      <h2>${item.title}</h2>
+      <p>${item.body}</p>
+    </div>`;
+  imageObserver.observe(card.querySelector("img"));
+  revealObserver.observe(card);
+  return card;
+}
+
 const imageObserver = new IntersectionObserver((entries, observer) => {
     for (const entry of entries) {
         if (!entry.isIntersecting) continue;
@@ -24,22 +40,6 @@ const revealObserver = new IntersectionObserver((entries, observer) => {
     }
 });
 
-function renderCard(item) {
-  const card = document.createElement("article");
-  card.className = "card reveal";
-  card.innerHTML = `
-    <div class="card-image" style="background:${item.color}">
-      <img alt="${item.title}" data-src="${item.imageUrl}" />
-    </div>
-    <div class="card-body">
-      <h2>${item.title}</h2>
-      <p>${item.body}</p>
-    </div>`;
-  imageObserver.observe(card.querySelector("img"));
-  revealObserver.observe(card);
-  return card;
-}
-
 let page = 1;
 let loading = false;
 let hasMore = true;
@@ -55,8 +55,8 @@ async function loadNextPage() {
     loading = false;
 
     if (!hasMore) {
-        sentinel.classList.add("done");     // hide the spinner
-        sentinelObserver.disconnect();      // nothing left to watch for
+        sentinel.classList.add("done");
+        sentinelObserver.disconnect();
         return;
     }
     // A page may not push the sentinel out of the trigger zone (tall window, short page).
