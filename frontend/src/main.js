@@ -6,9 +6,27 @@ async function fetchItems(page, pageSize = 12) {
   return res.json();
 }
 
+const imageObserver = new IntersectionObserver((entries, observer) => {
+    for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.removeAttribute("data-src");
+        observer.unobserve(img);
+    }
+}, { rootMargin: "200px" });
+
+const revealObserver = new IntersectionObserver((entries, observer) => {
+    for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("visible");
+        observer.unobserve(entry.target);
+    }
+});
+
 function renderCard(item) {
   const card = document.createElement("article");
-  card.className = "card";
+  card.className = "card reveal";
   card.innerHTML = `
     <div class="card-image" style="background:${item.color}">
       <img alt="${item.title}" data-src="${item.imageUrl}" />
@@ -17,6 +35,8 @@ function renderCard(item) {
       <h2>${item.title}</h2>
       <p>${item.body}</p>
     </div>`;
+  imageObserver.observe(card.querySelector("img"));
+  revealObserver.observe(card);
   return card;
 }
 
@@ -30,39 +50,29 @@ async function loadNextPage() {
 
     const res = await fetchItems(page);
     res.items.forEach(item => feed.append(renderCard(item)));
-    loadVisibleImages();
-
     page += 1;
     hasMore = res.hasMore;
     loading = false;
+
+    if (!hasMore) {
+        sentinel.classList.add("done");     // hide the spinner
+        sentinelObserver.disconnect();      // nothing left to watch for
+        return;
+    }
+    // A page may not push the sentinel out of the trigger zone (tall window, short page).
+    // IO only fires on crossing*, so re-observe to force a fresh check
+    // otherwise "still intersecting" is silent and the feed stalls with the spinner up.
+    sentinelObserver.unobserve(sentinel);
+    sentinelObserver.observe(sentinel);
 }
 
-function onScroll() {
-    const scrolledToBottom =
-        window.scrollY + window.innerHeight > document.documentElement.scrollHeight - 400;
-    if (scrolledToBottom) loadNextPage();
-}
+const sentinel = document.createElement("div");
+sentinel.className = "sentinel";
+sentinel.innerHTML = `<div class="spinner"></div>`;
+feed.after(sentinel);
 
-function loadVisibleImages() {
-    document.querySelectorAll("img[data-src]").forEach(img => {
-        const rect = img.getBoundingClientRect();
-        const inView = rect.top < window.innerHeight && rect.bottom > 0;
-        if (inView) {
-            img.src = img.dataset.src;
-            img.removeAttribute("data-src");
-        }
-    });
-}
+const sentinelObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) loadNextPage();
+}, { rootMargin: "400px" });
 
-function debounce(fn, wait = 150) {
-    let timer;
-    return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn(...args), wait);
-    };
-}
-
-window.addEventListener("scroll", debounce(onScroll));
-window.addEventListener("scroll", debounce(loadVisibleImages));
-
-loadNextPage(); // kick off page 1
+sentinelObserver.observe(sentinel);
