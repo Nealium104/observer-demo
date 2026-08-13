@@ -20,6 +20,7 @@ function renderCard(item) {
   return card;
 }
 
+// SPACES
 let page = 1;
 let loading = false;
 let hasMore = true;
@@ -37,10 +38,12 @@ async function loadNextPage() {
     loading = false;
 }
 
-function onScroll() {
-    const scrolledToBottom =
-        window.scrollY + window.innerHeight > document.documentElement.scrollHeight - 400;
-    if (scrolledToBottom) loadNextPage();
+function handleFeed() {
+  const offset = 400;
+  const bottomOfWindow = window.scrollY + window.innerHeight;
+  const bottomOfDoc = document.documentElement.scrollHeight;
+  const scrolledToBottom = bottomOfWindow > bottomOfDoc - offset;
+  if (scrolledToBottom) loadNextPage();
 }
 
 function loadVisibleImages() {
@@ -62,7 +65,7 @@ function debounce(fn, wait = 150) {
     };
 }
 
-window.addEventListener("scroll", debounce(onScroll));
+window.addEventListener("scroll", debounce(handleFeed));
 window.addEventListener("scroll", debounce(loadVisibleImages));
 
 loadNextPage(); // kick off page 1
