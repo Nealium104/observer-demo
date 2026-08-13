@@ -24,7 +24,7 @@ help:
 	@echo ""
 
 up:
-	docker compose up --build -d
+	docker compose up -d
 	@$(MAKE) --no-print-directory wait
 	@echo "ready -> $(URL)"
 
