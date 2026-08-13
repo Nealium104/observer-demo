@@ -10,17 +10,14 @@ help:
 	@echo "    make down       stop it"
 	@echo "    make restart    restart containers (no rebuild)"
 	@echo "    make logs       tail both services"
-	@echo "    make open       open $(URL)"
 	@echo "    make verify     confirm frontend + API are answering"
 	@echo ""
 	@echo "  Stages  (discards live edits -- that is the point)"
 	@echo "    make scaffold   -> main      Act 1 START (empty page)"
 	@echo "    make stage-1    -> stage-1   Act 1 DONE  (scroll + debounce)"
 	@echo "    make stage-2    -> stage-2   Act 3 DONE  (three observers)"
-	@echo "    make reset      panic button: restore scaffold, stay on branch"
+	@echo "    make reset      panic button: discard live edits to main.js, stay on branch"
 	@echo "    make status     where am I?"
-	@echo ""
-	@echo "    make tags       one-time: checkpoint tags for bail-outs"
 	@echo ""
 
 up:
